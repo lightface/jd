@@ -16,6 +16,10 @@ class GoodController extends Controller
     public $end =0;
     public function init() {
         header("Content-type:text/html;charset=utf-8");
+        session_start();
+        if(isset($_SESSION['start']) && !empty($_SESSION['start'])){
+            $_SESSION['start'] = 0;
+        }
         $this->good_m = new Good();
     }
 
@@ -30,7 +34,7 @@ class GoodController extends Controller
         set_time_limit(0);
         header("Content-type:text/html;charset=utf-8");
         $curl = new Curl();
-        $num = ! empty($_GET['num']) ? $_GET['num'] : 200000;
+        $num = ! empty($_GET['num']) ? $_GET['num'] : 200;
         $start = $this->good_m->start_id();
         $done = 0;
         $starttime = microtime(true);
@@ -68,8 +72,13 @@ class GoodController extends Controller
     {
         set_time_limit(0);
         $curl = new Curl();
-        $num = isset($_POST['num']) ? intval($_POST['num']) : 100;
-        $start = isset($_POST['start']) ? intval($_POST['start'])  : $this->good_m->start_id();
+        $num = 100;
+        if(isset($_SESSION['start']) && !empty($_SESSION['start'])){
+            $start = $_SESSION['start'];
+        } else {
+            $start = $this->good_m->start_id();
+        }
+
         $starttime = microtime(true);
 //        $start = 754883;
 
@@ -77,41 +86,29 @@ class GoodController extends Controller
         for($i=0;$i<$num;$i++){
             $url_arr[$start+$i] = 'http://item.m.jd.com/product/'.($start+$i).'.html';
         }
+        echo date('Y-m-d H:i:s').': 此次抓取第'.$start.'至'.($start+$num).'条,共'.$num.'条<br/><br/>';
+        $this->flush();
 
         $result = $curl->catch_multi($url_arr);
-        $this -> good_m -> insert_goods($result);
+//        $this -> good_m -> insert_goods($result);
         //模板参数设置
-        $view = $this->getView();
-        $view->title = '京东商品列表';
-        $view->params = [
-            'refresh' => 5,
-        ];
-        //
-        $goods = $this -> good_m -> get_good_list();
-        return $this->render('list1',array(
-            'goods' => $goods['goods'],
-            'total' => $goods['total'],
-        ));
 
-        /*echo date('Y-m-d H:i:s').': 此次抓取第'.$start.'至'.($start+$num).'条,共'.$num.'条';
         echo '抓了：<span style="color:red">'.count($result).'</span>个，此次总共耗时：<span style="color:red">'.(microtime(true)-$starttime).'</span>秒<br/>'.'<hr/><br/>';
-        $this->flush();*/
+        $this->flush();
+        $_SESSION['start'] = $start + ($num+1);
     }
 
     public function actionAuto(){
-//        ignore_user_abort();
+        ignore_user_abort();
 //即使Client断开(如关掉浏览器)，PHP脚本也可以继续执行.
-       /* set_time_limit(0);
+        set_time_limit(0);
 //执行时间为无限制，php默认的执行时间是30秒，通过set_time_limit(0)可以让程序无限制的执行下去
-        $interval=2;
-        $num = 100;//每次采集
-        $start = $this->good_m->start_id();
+        $interval=1;
         while(1){
-            $this->actionGrabMut($start+1,$num);
+            $this->actionGrabMut();
             sleep($interval);
-            $start += $num;
-        }*/
-        return $this->render('grab');
+            echo "<script>document.body.innerHTML='';</script>";
+        }
     }
 
     public function actionList()
