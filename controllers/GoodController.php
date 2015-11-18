@@ -72,7 +72,7 @@ class GoodController extends Controller
     {
         set_time_limit(0);
         $curl = new Curl();
-        $num = 100;
+        $num = 10;
         if(isset($_SESSION['start']) && !empty($_SESSION['start'])){
             $start = $_SESSION['start'];
         } else {
@@ -80,7 +80,7 @@ class GoodController extends Controller
         }
 
         $starttime = microtime(true);
-//        $start = 754883;
+//        $start = 2100740;
 
         $url_arr = [];
         for($i=0;$i<$num;$i++){
@@ -111,9 +111,9 @@ class GoodController extends Controller
     }
 
     public function actionAuto(){
-        ignore_user_abort();
+//        ignore_user_abort();
 //即使Client断开(如关掉浏览器)，PHP脚本也可以继续执行.
-        set_time_limit(0);
+//        set_time_limit(0);
 //执行时间为无限制，php默认的执行时间是30秒，通过set_time_limit(0)可以让程序无限制的执行下去
         $interval=1;
         while(1){

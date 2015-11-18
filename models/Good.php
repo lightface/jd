@@ -31,7 +31,7 @@ class Good extends Model
         if(is_array($goods) && count($goods)>0){
             $values = '';
             foreach($goods as $id => $good){
-                $values .= ',('.$id." ,'".addslashes($good['name'])."' ,".$good['price']." ,"."unix_timestamp() )";
+                $values .= ',('.$id." ,'".addslashes($good['name'])."' ,'".$good['price']."' ,"."unix_timestamp() )";
             }
             $values = substr($values,1);
         } else {
