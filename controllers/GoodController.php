@@ -15,7 +15,7 @@ class GoodController extends Controller
     public $good_m;
     public $end =0;
     public function init() {
-        header("Content-type:text/html;charset=utf-8");
+//        header("Content-type:text/html;charset=utf-8");
         session_start();
         if(isset($_SESSION['start']) && !empty($_SESSION['start'])){
             $_SESSION['start'] = 0;
@@ -90,6 +90,18 @@ class GoodController extends Controller
         $this->flush();
 
         $result = $curl->catch_multi($url_arr);
+        if(isset($_SESSION['good']) && !empty($_SESSION['good'])){
+            $_SESSION['good'] += $result;
+            if(count($_SESSION['good'])>20){
+                $this -> good_m -> insert_goods($_SESSION['good']);
+                echo count($_SESSION['good']).'个数据存档中。。。。';
+                $this->flush();
+//                sleep(1);
+                unset($_SESSION['good']);
+            }
+        } else {
+            $_SESSION['good'] = $result;
+        }
 //        $this -> good_m -> insert_goods($result);
         //模板参数设置
 
@@ -106,7 +118,7 @@ class GoodController extends Controller
         $interval=1;
         while(1){
             $this->actionGrabMut();
-            sleep($interval);
+//            sleep(1);
             echo "<script>document.body.innerHTML='';</script>";
         }
     }
