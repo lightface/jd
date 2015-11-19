@@ -13,10 +13,10 @@ nbproject
 Thumbs.db
 
 # composer vendor dir
-#/vendor/*
-#!/vendor/init
-#!/vendor/other
-
+/vendor/*
+!/vendor/init
+!/vendor/other
+#
 /runtime
 
 /tests
