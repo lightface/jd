@@ -18,7 +18,7 @@ class Good extends Model
     public function get_good_list()
     {
         $db = Yii::$app->db;
-        $command = $db->createCommand('SELECT * FROM goods ORDER BY add_time DESC LIMIT 200');
+        $command = $db->createCommand('SELECT * FROM goods ORDER BY update_time DESC LIMIT 200');
         $goods = $command->queryAll();
 
         $count_com = $db->createCommand('SELECT COUNT(id) FROM goods ');
@@ -31,19 +31,19 @@ class Good extends Model
         if(is_array($goods) && count($goods)>0){
             $values = '';
             foreach($goods as $id => $good){
-                $values .= ',('.$id." ,'".addslashes($good['name'])."' ,'".$good['price']."' ,"."unix_timestamp() )";
+                $values .= ',('.$id." ,'".addslashes($good['name'])."' ,'".$good['price']."' ,"."unix_timestamp(),unix_timestamp() )";
             }
             $values = substr($values,1);
         } else {
             return false;
         }
-        $command = $this->db->createCommand('INSERT INTO goods (id,name,price_old,add_time) VALUES '.$values." ON DUPLICATE KEY UPDATE price_old=VALUES(price_old) , update_time = unix_timestamp()");
+        $command = $this->db->createCommand('INSERT INTO goods (id,name,price_old,add_time,update_time) VALUES '.$values." ON DUPLICATE KEY UPDATE price_new = VALUES(price_old) , update_time = unix_timestamp()");
         $result = $command->execute();
         return $result;
     }
 
     public function start_id(){
-        $command = $this->db->createCommand('SELECT id FROM goods ORDER BY id DESC LIMIT 1');
+        $command = $this->db->createCommand('SELECT id FROM goods ORDER BY update_time DESC LIMIT 1');
         $max_id = $command->queryOne();
         return $max_id['id'];
     }
