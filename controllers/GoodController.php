@@ -15,11 +15,15 @@ class GoodController extends Controller
     public $good_m;
     public $end =0;
     public function init() {
-//        header("Content-type:text/html;charset=utf-8");
+        header("Content-type:text/html;charset=utf-8");
         session_start();
         if(isset($_SESSION['start']) && !empty($_SESSION['start'])){
             $_SESSION['start'] = 0;
         }
+        if(isset($_GET['start']) && !empty($_GET['start'])){
+            $_SESSION['start'] = $_GET['start'];
+        }
+        $_SESSION['error']=0;
         $this->good_m = new Good();
     }
 
@@ -28,7 +32,7 @@ class GoodController extends Controller
         @flush();
     }
 
-    //阻塞模式
+    //����ģʽ
     public function actionGrab()
     {
         set_time_limit(0);
@@ -51,7 +55,7 @@ class GoodController extends Controller
                     $this -> good_m -> insert_goods($goods);
                     unset($goods);
                 }
-                echo 'id:'.$i.'  '.date('H:i:s',time()).'  '.'产品：'.$good['name'].'   '.'价格：'.$good['price'].'<br/>';
+                echo 'id:'.$i.'  '.date('H:i:s',time()).'  '.'名称'.$good['name'].'   '.'价钱'.$good['price'].'<br/>';
                 $this->flush();
                 unset($good);
                 $done++;
@@ -62,17 +66,17 @@ class GoodController extends Controller
 
 //        echo '<pre/>';
         echo $num.'<br/>';
-        echo '<hr/><br/>'.'抓了：'.$done.'个，总共耗时：'.(microtime(true)-$starttime).'秒<br/>';
+        echo '<hr/><br/>'.'抓到'.$done.'条，消耗时间'.(microtime(true)-$starttime).'秒<br/>';
 //        print_r($goods);
 //        echo QW::date_friendly(time()-60);
     }
 
-    //并发模式
+    //����ģʽ
     public function actionGrabMut()
     {
         set_time_limit(0);
         $curl = new Curl();
-        $num = 10;
+        $num = 30;
         if(isset($_SESSION['start']) && !empty($_SESSION['start'])){
             $start = $_SESSION['start'];
         } else {
@@ -86,15 +90,24 @@ class GoodController extends Controller
         for($i=0;$i<$num;$i++){
             $url_arr[$start+$i] = 'http://item.m.jd.com/product/'.($start+$i).'.html';
         }
-        echo date('Y-m-d H:i:s').': 此次抓取第'.$start.'至'.($start+$num).'条,共'.$num.'条<br/><br/>';
+        echo date('Y-m-d H:i:s').': 开始'.$start.'至'.($start+$num).',一共'.$num.'条<br/><br/>';
         $this->flush();
 
         $result = $curl->catch_multi($url_arr);
+        if(count($result)<1){
+            $_SESSION['error'] ++;
+            if($_SESSION['error']>50){
+                sleep(60);
+                $_SESSION['error']=0;
+            }
+        } else {
+            $_SESSION['error']=0;
+        }
         if(isset($_SESSION['good']) && !empty($_SESSION['good'])){
             $_SESSION['good'] += $result;
-            if(count($_SESSION['good'])>20){
+            if(count($_SESSION['good'])>30){
                 $this -> good_m -> insert_goods($_SESSION['good']);
-                echo count($_SESSION['good']).'个数据存档中。。。。';
+                echo count($_SESSION['good']).'存档';
                 $this->flush();
 //                sleep(1);
                 unset($_SESSION['good']);
@@ -103,33 +116,35 @@ class GoodController extends Controller
             $_SESSION['good'] = $result;
         }
 //        $this -> good_m -> insert_goods($result);
-        //模板参数设置
+        //ģ���������
 
-        echo '抓了：<span style="color:red">'.count($result).'</span>个，此次总共耗时：<span style="color:red">'.(microtime(true)-$starttime).'</span>秒<br/>'.'<hr/><br/>';
+        echo '抓到<span style="color:red">'.count($result).'</span>时间<span style="color:red">'.(microtime(true)-$starttime).'</span>秒<br/>'.'<hr/><br/>';
         $this->flush();
         $_SESSION['start'] = $start + ($num+1);
     }
 
     public function actionAuto(){
-//        ignore_user_abort();
-//即使Client断开(如关掉浏览器)，PHP脚本也可以继续执行.
-//        set_time_limit(0);
-//执行时间为无限制，php默认的执行时间是30秒，通过set_time_limit(0)可以让程序无限制的执行下去
+        ignore_user_abort();
+//��ʹClient�Ͽ�(��ص������)��PHP�ű�Ҳ���Լ���ִ��.
+        set_time_limit(0);
+//ִ��ʱ��Ϊ�����ƣ�phpĬ�ϵ�ִ��ʱ����30�룬ͨ��set_time_limit(0)�����ó��������Ƶ�ִ����ȥ
         $interval=1;
         while(1){
             $this->actionGrabMut();
-//            sleep(1);
+            sleep($interval);
             echo "<script>document.body.innerHTML='';</script>";
         }
     }
 
     public function actionList()
     {
-        //模板参数设置
+        //ģ���������
+        ignore_user_abort();
+        set_time_limit(0);
         $view = $this->getView();
-        $view->title = '京东商品列表';
+        $view->title = '京东抓取列表';
         $view->params = [
-            'refresh' => 30,
+            'refresh' => 60,
         ];
         //
         $goods = $this -> good_m -> get_good_list();

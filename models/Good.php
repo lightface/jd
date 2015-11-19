@@ -18,7 +18,7 @@ class Good extends Model
     public function get_good_list()
     {
         $db = Yii::$app->db;
-        $command = $db->createCommand('SELECT * FROM goods ORDER BY id DESC LIMIT 30');
+        $command = $db->createCommand('SELECT * FROM goods ORDER BY add_time DESC LIMIT 200');
         $goods = $command->queryAll();
 
         $count_com = $db->createCommand('SELECT COUNT(id) FROM goods ');

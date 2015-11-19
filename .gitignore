@@ -13,7 +13,19 @@ nbproject
 Thumbs.db
 
 # composer vendor dir
-/vendor
+#/vendor/*
+#!/vendor/init
+#!/vendor/other
+
+/runtime
+
+/tests
+
+#/test.html
+#
+#/.gitignore
+#
+#/error.txt
 
 # composer itself is not needed
 composer.phar
